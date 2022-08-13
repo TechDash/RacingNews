@@ -1,7 +1,7 @@
 package com.techdash.racingnews
 
 import android.content.Context
-import android.graphics.Bitmap
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,7 +10,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter
 
-class NewsBlock(context: Context, private val news: ArrayList<News>) : Adapter<NewsBlock.ViewHolder>() {
+class NewsBlock(private val context: Context, private val news: ArrayList<News>) : Adapter<NewsBlock.ViewHolder>() {
     private val layoutInflater: LayoutInflater = LayoutInflater.from(context)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -21,6 +21,11 @@ class NewsBlock(context: Context, private val news: ArrayList<News>) : Adapter<N
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.title.text = news[position].title
         holder.thumbNail.setImageResource(R.drawable.f1_logo)
+        holder.itemView.setOnClickListener {
+            val intent = Intent(context, WebActivity::class.java)
+            intent.putExtra("url", news[position].url)
+            context.startActivity(intent)
+        }
     }
 
     override fun getItemCount(): Int {
