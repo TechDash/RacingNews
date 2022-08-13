@@ -9,13 +9,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter
 
-class NewsBlock(context: Context, data: ArrayList<String>) : Adapter<NewsBlock.ViewHolder>() {
-    private val layoutInflater: LayoutInflater
-    private val news: ArrayList<String> = data
-
-    init {
-        layoutInflater = LayoutInflater.from(context)
-    }
+class NewsBlock(context: Context, private val news: ArrayList<News>) : Adapter<NewsBlock.ViewHolder>() {
+    private val layoutInflater: LayoutInflater = LayoutInflater.from(context)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val row = layoutInflater.inflate(R.layout.news, parent, false)
@@ -23,7 +18,7 @@ class NewsBlock(context: Context, data: ArrayList<String>) : Adapter<NewsBlock.V
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val title = news[position]
+        val title = news[position].title
         holder.title.text = title
     }
 
