@@ -1,6 +1,7 @@
 package com.techdash.racingnews
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,8 +19,8 @@ class NewsBlock(context: Context, private val news: ArrayList<News>) : Adapter<N
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val title = news[position].title
-        holder.title.text = title
+        holder.title.text = news[position].title
+        holder.thumbNail.setImageResource(R.drawable.f1_logo)
     }
 
     override fun getItemCount(): Int {
