@@ -1,23 +1,28 @@
 package com.techdash.racingnews
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jsoup.Jsoup
-
 
 class MainActivity : AppCompatActivity() {
     private lateinit var recycler: RecyclerView
     private lateinit var dialog: AlertDialog
+    private lateinit var context: Context
 
     @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        context = this
 
 
         recycler = findViewById(R.id.recycler)
@@ -39,7 +44,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getSites() {
-        Thread {
+        lifecycleScope.launch(Dispatchers.IO) {
             val sites = ArrayList<News>()
             val doc = Jsoup.connect("https://wtf1.com/topics/formula-1").get()
             val links = doc.select("article > a")
@@ -52,10 +57,10 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             runOnUiThread {
-                recycler.adapter = NewsBlock(this, sites)
+                recycler.adapter = NewsBlock(context, sites)
                 dialog.cancel()
             }
 
-        }.start()
+        }
     }
 }
