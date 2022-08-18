@@ -3,7 +3,8 @@ package com.techdash.racingnews
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
-import androidx.appcompat.app.AlertDialog
+import android.view.View
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -12,11 +13,13 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jsoup.Jsoup
+import java.util.concurrent.CountDownLatch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var recycler: RecyclerView
-    private lateinit var dialog: AlertDialog
     private lateinit var context: Context
+    private lateinit var progressBar: ProgressBar
+    private lateinit var adapter: NewsBlock
 
     @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,14 +29,12 @@ class MainActivity : AppCompatActivity() {
 
 
         recycler = findViewById(R.id.recycler)
-        recycler.layoutManager = LinearLayoutManager(this)
+        progressBar = findViewById(R.id.progressbar_id)
+        val layoutManager = LinearLayoutManager(this)
+        layoutManager.stackFromEnd = true
+        recycler.layoutManager = layoutManager
 
-        val builder = AlertDialog.Builder(this)
-        builder.setView(layoutInflater.inflate(R.layout.splash_screen, null))
-        builder.setCancelable(false)
-        dialog = builder.create()
 
-        dialog.show()
         getSites()
 
         val dividerItemDecoration = DividerItemDecoration(
@@ -44,23 +45,45 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getSites() {
+        val sites = ArrayList<News>()
+        val countDownLatch = CountDownLatch(1)
         lifecycleScope.launch(Dispatchers.IO) {
-            val sites = ArrayList<News>()
             val doc = Jsoup.connect("https://wtf1.com/topics/formula-1").get()
             val links = doc.select("article > a")
             val titles = doc.select("article > header > h1 > a > div")
             for (i in links.indices) {
                 val url = links[i].attr("href")
+                countDownLatch.countDown()
                 if (url.indexOf("/post/") > -1) {
-                    val title = titles[i].toString()
-                    sites.add(News(title.substring(6, title.length - 7), "https://www.wtf1.com$url"))
+                    val title = titles[i].toString().replace("&nbsp;","")
+                    sites.add(
+                        News(title.substring(6, title.length - 7), "https://www.wtf1.com$url")
+                    )
                 }
             }
             runOnUiThread {
-                recycler.adapter = NewsBlock(context, sites)
-                dialog.cancel()
+                adapter = NewsBlock(context, sites)
+                recycler.adapter = adapter
+                progressBar.visibility = View.GONE
             }
+        }
 
+        countDownLatch.await()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val doc = Jsoup.connect("https://wtf1.com/topics/formula-1/page/2").get()
+            val links = doc.select("article > a")
+            val titles = doc.select("article > header > h1 > a > div")
+            for (i in links.indices) {
+                val url = links[i].attr("href")
+                if (url.indexOf("/post/") > -1) {
+                    val title = titles[i].toString().replace("&nbsp;","")
+                    runOnUiThread{
+                        adapter.addItem(
+                            News(title.substring(6, title.length - 7), "https://www.wtf1.com$url")
+                        )
+                    }
+                }
+            }
         }
     }
 }

@@ -32,6 +32,11 @@ class NewsBlock(private val context: Context, private val news: ArrayList<News>)
         return news.size
     }
 
+    fun addItem(newNews: News) {
+        news.add(newNews)
+        notifyItemInserted(news.size)
+    }
+
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val title: TextView
         val thumbNail: ImageView
