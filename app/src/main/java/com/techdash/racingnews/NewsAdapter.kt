@@ -10,8 +10,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter
 
-class NewsBlock(private val context: Context, private val news: ArrayList<News>) : Adapter<NewsBlock.ViewHolder>() {
+class NewsAdapter(private val context: Context) : Adapter<NewsAdapter.ViewHolder>() {
     private val layoutInflater: LayoutInflater = LayoutInflater.from(context)
+    private val news: ArrayList<News> = ArrayList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val row = layoutInflater.inflate(R.layout.news, parent, false)
@@ -20,7 +21,13 @@ class NewsBlock(private val context: Context, private val news: ArrayList<News>)
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.title.text = news[position].title
-        holder.thumbNail.setImageResource(R.drawable.f1_logo)
+
+        if (news[position].image != null) {
+            holder.thumbNail.setImageBitmap(news[position].image)
+        }else {
+            holder.thumbNail.setImageResource(R.drawable.f1_logo)
+        }
+
         holder.itemView.setOnClickListener {
             val intent = Intent(context, WebActivity::class.java)
             intent.putExtra("url", news[position].url)
@@ -34,7 +41,7 @@ class NewsBlock(private val context: Context, private val news: ArrayList<News>)
 
     fun addItem(newNews: News) {
         news.add(newNews)
-        notifyItemInserted(news.size)
+        notifyItemInserted(news.size - 1)
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
