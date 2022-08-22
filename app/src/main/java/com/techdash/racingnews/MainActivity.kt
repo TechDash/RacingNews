@@ -5,13 +5,17 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
 import android.widget.ProgressBar
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jsoup.Jsoup
@@ -20,14 +24,22 @@ import java.net.URL
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
+
     private lateinit var recycler: RecyclerView
     private lateinit var progressBar: ProgressBar
     private lateinit var adapter: NewsAdapter
+    private lateinit var toggle: ActionBarDrawerToggle
+    private val f1 = ArrayList<News>()
 
     @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val drawerLayout = findViewById<DrawerLayout>(R.id.drawerLayout)
+        toggle = ActionBarDrawerToggle(this, drawerLayout, R.string.open, R.string.close)
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         recycler = findViewById(R.id.recycler)
         progressBar = findViewById(R.id.progressbar_id)
@@ -44,6 +56,29 @@ class MainActivity : AppCompatActivity() {
         recycler.addItemDecoration(dividerItemDecoration)
         adapter = NewsAdapter(this)
         recycler.adapter = adapter
+        val navView = findViewById<NavigationView>(R.id.navView)
+        navView.setNavigationItemSelectedListener {
+            when (it.itemId) {
+                R.id.f1 -> {
+                    recycler.adapter = NewsAdapter(this, f1)
+                    drawerLayout.closeDrawers()
+                    recycler.scrollToPosition(0)
+                }
+
+                R.id.home -> {
+                    recycler.adapter = adapter
+                    drawerLayout.closeDrawers()
+                    recycler.scrollToPosition(0)
+                }
+            }
+            true
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (toggle.onOptionsItemSelected(item))
+            return true
+        return super.onOptionsItemSelected(item)
     }
 
     private fun getSites() {
@@ -52,14 +87,13 @@ class MainActivity : AppCompatActivity() {
             val links = doc.select("article > a")
             val titles = doc.select("article > header > h1 > a > div")
             for (i in links.indices) {
-                Log.d("MainActivity", "WTF1")
                 val url = links[i].attr("href")
                 if (url.indexOf("/post/") > -1) {
                     val title = titles[i].toString().replace("&nbsp;","")
+                    val news = News(title.substring(6, title.length - 7), "https://www.wtf1.com$url")
+                    f1.add(news)
                     runOnUiThread {
-                        adapter.addItem(
-                            News(title.substring(6, title.length - 7), "https://www.wtf1.com$url")
-                        )
+                        adapter.addItem(news)
                         recycler.scrollToPosition(0)
                     }
                 }
@@ -82,7 +116,6 @@ class MainActivity : AppCompatActivity() {
 
                     val url = links[i].attr("href")
                     if (url.indexOf("news") > -1 && !seenLinks.contains(url)) {
-                        Log.d("MainActivity", "Second")
                         seenLinks.add(url)
                         val title = links[i].attr("title")
                         val src = links[i].select("picture > img").attr("src")
@@ -110,9 +143,10 @@ class MainActivity : AppCompatActivity() {
                             }else {
                                 "https://motorsport.com$url"
                             }
-                            adapter.addItem(
-                                News(title, href, bmp)
-                            )
+                            val news = News(title, href, bmp)
+                            if (url.indexOf("f1") > -1)
+                                f1.add(news)
+                            adapter.addItem(news)
                         }
                     }
                 }
@@ -127,10 +161,10 @@ class MainActivity : AppCompatActivity() {
                 val url = links[i].attr("href")
                 if (url.indexOf("/post/") > -1) {
                     val title = titles[i].toString().replace("&nbsp;","")
+                    val news = News(title.substring(6, title.length - 7), "https://www.wtf1.com$url")
+                    f1.add(news)
                     runOnUiThread{
-                        adapter.addItem(
-                            News(title.substring(6, title.length - 7), "https://www.wtf1.com$url")
-                        )
+                        adapter.addItem(news)
                     }
                 }
             }

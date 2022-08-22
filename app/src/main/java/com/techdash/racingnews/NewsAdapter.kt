@@ -10,9 +10,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter
 
-class NewsAdapter(private val context: Context) : Adapter<NewsAdapter.ViewHolder>() {
-    private val layoutInflater: LayoutInflater = LayoutInflater.from(context)
-    private val news: ArrayList<News> = ArrayList()
+class NewsAdapter(private val context: Context,
+                  private val news: ArrayList<News> = ArrayList()) : Adapter<NewsAdapter.ViewHolder>() {
+
+    private val layoutInflater : LayoutInflater = LayoutInflater.from(context)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val row = layoutInflater.inflate(R.layout.news, parent, false)
