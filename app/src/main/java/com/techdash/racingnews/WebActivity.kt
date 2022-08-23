@@ -9,6 +9,7 @@ class WebActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.web_activity)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val webView = findViewById<WebView>(R.id.webView)
         webView.webViewClient = WebViewClient()
