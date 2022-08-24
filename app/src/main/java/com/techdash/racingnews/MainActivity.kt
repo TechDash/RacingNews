@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.navigation.NavigationView
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -47,8 +46,9 @@ class MainActivity : AppCompatActivity() {
         recycler.addItemDecoration(dividerItemDecoration)
         val parser = HtmlParser(NewsAdapter(this), progressBar)
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            parser.getSites()
+        lifecycleScope.launch {
+            parser.addSites()
+            recycler.scrollToPosition(0)
         }
 
         recycler.adapter = parser.adapter

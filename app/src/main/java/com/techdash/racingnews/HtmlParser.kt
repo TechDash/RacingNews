@@ -5,7 +5,9 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.jsoup.Jsoup
 import java.net.HttpURLConnection
 import java.net.URL
@@ -14,23 +16,35 @@ import java.util.*
 class HtmlParser(val adapter: NewsAdapter, private val progressBar: ProgressBar) {
 
     val f1 = ArrayList<News>()
+    private val wtf1 = ArrayList<News>()
+    private val mSport = ArrayList<News>()
+    private val gpBlog = ArrayList<News>()
 
-    suspend fun getSites() {
+    private suspend fun getSites() {
         coroutineScope {
             launch(Dispatchers.IO) {
-                val doc = Jsoup.connect("https://wtf1.com/topics/formula-1").get()
-                val links = doc.select("article > a")
-                val titles = doc.select("article > header > h1 > a > div")
+                var doc = Jsoup.connect("https://wtf1.com/topics/formula-1").get()
+                var links = doc.select("article > a")
+                var titles = doc.select("article > header > h1 > a > div")
                 for (i in links.indices) {
                     val url = links[i].attr("href")
                     if (url.indexOf("/post/") > -1) {
                         val title = titles[i].toString().replace("&nbsp;","")
                         val news = News(title.substring(6, title.length - 7), "https://www.wtf1.com$url")
                         f1.add(news)
-                        launch(Dispatchers.Main) {
-                            adapter.addItem(news)
-                            progressBar.visibility = View.GONE
-                        }
+                        wtf1.add(news)
+                    }
+                }
+                doc = Jsoup.connect("https://wtf1.com/topics/formula-1/page/2").get()
+                links = doc.select("article > a")
+                titles = doc.select("article > header > h1 > a > div")
+                for (i in links.indices) {
+                    val url = links[i].attr("href")
+                    if (url.indexOf("/post/") > -1) {
+                        val title = titles[i].toString().replace("&nbsp;","")
+                        val news = News(title.substring(6, title.length - 7), "https://www.wtf1.com$url")
+                        f1.add(news)
+                        wtf1.add(news)
                     }
                 }
             }
@@ -68,7 +82,7 @@ class HtmlParser(val adapter: NewsAdapter, private val progressBar: ProgressBar)
                         if (url.indexOf("f1") > -1) {
                             f1.add(news)
                         }
-                        launch(Dispatchers.Main) { adapter.addItem(news) }
+                        mSport.add(news)
                     }
                 }
             }
@@ -109,7 +123,7 @@ class HtmlParser(val adapter: NewsAdapter, private val progressBar: ProgressBar)
                         )
                         val news = News(title, "https://gpblog.com$url", bmp)
                         f1.add(news)
-                        launch(Dispatchers.Main) { adapter.addItem(news) }
+                        gpBlog.add(news)
                     }
                 }
             }
@@ -124,10 +138,26 @@ class HtmlParser(val adapter: NewsAdapter, private val progressBar: ProgressBar)
                         val title = titles[i].toString().replace("&nbsp;","")
                         val news = News(title.substring(6, title.length - 7), "https://www.wtf1.com$url")
                         f1.add(news)
-                        launch(Dispatchers.Main) { adapter.addItem(news) }
+                        wtf1.add(news)
                     }
                 }
             }
         }
+    }
+
+    suspend fun addSites() {
+        coroutineScope {
+            getSites()
+            for (i in gpBlog.indices) {
+                adapter.addItem(gpBlog[i])
+                if (i <= wtf1.size - 1) {
+                    adapter.addItem(wtf1[i])
+                }
+                if (i <= mSport.size - 1) {
+                    adapter.addItem(mSport[i])
+                }
+            }
+        }
+        progressBar.visibility = View.GONE
     }
 }
