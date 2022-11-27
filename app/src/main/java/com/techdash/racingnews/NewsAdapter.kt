@@ -14,25 +14,18 @@ import com.firebase.ui.firestore.paging.FirestorePagingOptions
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
-class NewsAdapter(private val context: Context,
-                  private val db: FirebaseFirestore,
-                  private val options: FirestorePagingOptions<News>)
-  : FirestorePagingAdapter<News, NewsAdapter.ViewHolder>(options) {
+class NewsAdapter(
+  private val context: Context,
+  private val db: FirebaseFirestore,
+  options: FirestorePagingOptions<News>
+) : FirestorePagingAdapter<News, NewsAdapter.ViewHolder>(options) {
 
-  private val layoutInflater : LayoutInflater = LayoutInflater.from(context)
+  private val layoutInflater: LayoutInflater = LayoutInflater.from(context)
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
     val row = layoutInflater.inflate(R.layout.news, parent, false)
     return ViewHolder(row)
   }
-
-  /*override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-    holder.bind(mNews[position], context, db)
-  }
-
-  override fun getItemCount(): Int {
-    return mNews.size
-  }*/
 
   class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -58,14 +51,6 @@ class NewsAdapter(private val context: Context,
 
           db.collection("news").document(news.title)
             .update("opened", FieldValue.increment(1))
-
-          db.collection("f1").document(news.title).get()
-            .addOnCompleteListener { doc ->
-              if (doc.result.exists()) {
-                db.collection("f1").document(news.title)
-                  .update("opened", FieldValue.increment(1))
-              }
-            }
         }
       }
     }

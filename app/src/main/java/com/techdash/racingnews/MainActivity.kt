@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.widget.ProgressBar
+
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.drawerlayout.widget.DrawerLayout
@@ -11,6 +12,7 @@ import androidx.paging.PagingConfig
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+
 import com.firebase.ui.firestore.paging.FirestorePagingOptions
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.firestore.FirebaseFirestore
@@ -59,12 +61,18 @@ open class MainActivity : AppCompatActivity() {
     }
   }
 
-  private fun initRecyclerView(topic: String) {
+  private fun initRecyclerView(category: String) {
     recycler = findViewById(R.id.recycler)
     progressBar = findViewById(R.id.progressbar_id)
 
     val config = PagingConfig(20, 10, false)
-    val query = mFirestore.collection(topic).orderBy("addedDate", Query.Direction.DESCENDING)
+    val query = if (category != "news") {
+      mFirestore.collection("news").orderBy("addedDate", Query.Direction.DESCENDING)
+        .whereEqualTo("category", category)
+    } else {
+      mFirestore.collection("news").orderBy("addedDate", Query.Direction.DESCENDING)
+    }
+
     val options = FirestorePagingOptions.Builder<News>()
       .setLifecycleOwner(this)
       .setQuery(query, config, News::class.java)
@@ -73,7 +81,6 @@ open class MainActivity : AppCompatActivity() {
     mAdapter = NewsAdapter(this, mFirestore, options)
 
     layoutManager = LinearLayoutManager(this)
-    layoutManager.stackFromEnd = true
     recycler.layoutManager = layoutManager
 
     val dividerItemDecoration = DividerItemDecoration(
@@ -83,7 +90,6 @@ open class MainActivity : AppCompatActivity() {
 
     recycler.addItemDecoration(dividerItemDecoration)
     recycler.adapter = mAdapter
-    recycler.scrollToPosition(0)
 
     progressBar.visibility = View.GONE
   }
